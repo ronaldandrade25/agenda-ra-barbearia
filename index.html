@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda • RA Barbearia</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <a href="#" class="logo">
+                <img src="./assets/logo-ra-baberaria1.png" alt="logo" class="logo-img">
+                RA Barbearia</a>
+           
+        </nav>
+    </header>
+    <main id="agenda">
+        <div class="toolbar">
+            <div class="field">
+                <label for="profissionalSelect">Profissional</label>
+                <select id="profissionalSelect"></select>
+            </div>
+            <div class="field">
+                <label for="dataFiltro">Data</label>
+                <input type="date" id="dataFiltro" />
+            </div>
+            <div class="field">
+                <label for="horaFiltro">Hora (opcional)</label>
+                <select id="horaFiltro">
+                    <option value="">Todas</option>
+                    <option>09:00</option>
+                    <option>10:00</option>
+                    <option>11:00</option>
+                    <option>13:00</option>
+                    <option>14:00</option>
+                    <option>15:00</option>
+                    <option>16:00</option>
+                    <option>17:00</option>
+                    <option>18:00</option>
+                    <option>19:00</option>
+                </select>
+            </div>
+            <div class="field">
+                <button id="buscarBtn"><i class='bx bx-search'></i> Buscar</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Resultados do dia</h2>
+              
+            </div>
+            <div class="meta" id="metaInfo"></div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Profissional</th>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>DocId</th>
+                            <th style="width:160px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <a class="link-index" href="https://ra-barbearia.vercel.app/"><i class='bx bx-calendar'></i> Ir para Agendamentos</a>
+        </div>
+    </main>
+
+    <div class="modal-2" id="editModal">
+        <div class="box">
+            <header>
+                <h3>Editar Agendamento</h3>
+                <button id="closeEdit">×</button>
+            </header>
+            <div class="content">
+                <div>
+                    <label for="editCliente">Nome do cliente</label>
+                    <input id="editCliente" placeholder="Ex.: João Silva" />
+                </div>
+                <div>
+                    <label for="editData">Data</label>
+                    <input type="date" id="editData" />
+                </div>
+                <div>
+                    <label for="editHora">Hora</label>
+                    <select id="editHora">
+                        <option>09:00</option>
+                        <option>10:00</option>
+                        <option>11:00</option>
+                        <option>13:00</option>
+                        <option>14:00</option>
+                        <option>15:00</option>
+                        <option>16:00</option>
+                        <option>17:00</option>
+                        <option>18:00</option>
+                        <option>19:00</option>
+                    </select>
+                </div>
+            </div>
+            <div class="footer">
+                <button class="btn btn-del" id="cancelarBtnModal">Desmarcar</button>
+                <button class="btn btn-edit" id="salvarBtnModal">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS específico do painel -->
+    <script type="module" src="./script.js"></script>
+</body>
+
+</html>

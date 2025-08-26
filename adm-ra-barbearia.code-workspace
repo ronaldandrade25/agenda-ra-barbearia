@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../barbearia"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "adm-ra-barbearia"
+	}
+}
