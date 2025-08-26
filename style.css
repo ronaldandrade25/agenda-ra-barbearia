@@ -1,4 +1,4 @@
- /* Complementos visuais para a tabela e controles desta página */
+/* Complementos visuais para a tabela e controles desta página */
         
  * {
     margin: 0;
@@ -8,8 +8,8 @@
 
 /* Variáveis CSS - Fácil customização */
 :root {
-    --primary-color: #C5A049;
-    --secondary-color: #0c2135;
+    --primary-color: #C5A049;   /* dourado */
+    --secondary-color: #0c2135; /* azul escuro */
     --text-dark:#C5A049;
     --text-light: #666;
     --white: #ffffff;
@@ -27,7 +27,7 @@ main#agenda {
 
 body{
     font-family: 'Poppins', sans-serif;
-    background: var( --secondary-color);
+    background: var(--secondary-color);
 }
 
 
@@ -95,12 +95,47 @@ nav {
   align-items: end;
   margin-bottom: 18px;
 }
-.toolbar label { font-weight: 600; color: var(--secondary-color); font-size: .95rem; }
-.toolbar .field { display: flex; flex-direction: column; gap: 6px; }
+
+/* Labels da toolbar em branco */
+.toolbar label { 
+  font-weight: 600; 
+  color: var(--white); 
+  font-size: .95rem; 
+}
+
+.toolbar .field { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+}
+
 .toolbar button {
   background: var(--primary-color);
-  color: #fff; padding: 10px 16px; border: 0; border-radius: 10px;
-  font-weight: 600; cursor: pointer;
+  color: #fff; 
+  padding: 10px 16px; 
+  border: 0; 
+  border-radius: 10px;
+  font-weight: 600; 
+  cursor: pointer;
+}
+
+/* ===== Ajuste inputs e selects ===== */
+#profissionalSelect,
+#dataFiltro,
+#horaFiltro {
+  color: var(--white);                
+  background-color: var(--secondary-color); 
+  border-radius: 20px;                
+  border: 1px solid var(--primary-color); 
+  padding: 10px 14px;
+  font-size: 1rem;
+}
+
+/* opções dentro dos selects */
+#profissionalSelect option,
+#horaFiltro option {
+  color: var(--white);
+  background-color: var(--secondary-color);
 }
 
 .card {
@@ -177,4 +212,3 @@ tbody tr:hover { background: #fffbee; }
   .toolbar { grid-template-columns: 1fr; }
   .card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
 }
-
