@@ -17,30 +17,27 @@
         <nav>
             <a href="#" class="logo">
                 <img src="./assets/logo-ra-baberaria1.png" alt="logo" class="logo-img">
-                RA Barbearia</a>
-       
-
+                RA Barbearia
+            </a>
         </nav>
     </header>
 
-<!-- GATE DE LOGIN (mostra por cima da página até o admin entrar) -->
-<div id="authGate" class="auth-gate">
-    <div class="auth-card">
-        <h2>Entrar no painel</h2>
-        <p class="auth-sub">Use seu e-mail de administrador para editar/desmarcar agendamentos.</p>
+    <!-- GATE DE LOGIN -->
+    <div id="authGate" class="auth-gate">
+        <div class="auth-card">
+            <h2>Entrar no painel</h2>
+            <p class="auth-sub">Use seu e-mail de administrador para editar/desmarcar agendamentos.</p>
 
-        <label for="authEmail">E-mail</label>
-        <input id="authEmail" type="email" placeholder="admin@seuemail.com" autocomplete="username" />
+            <label for="authEmail">E-mail</label>
+            <input id="authEmail" type="email" placeholder="admin@seuemail.com" autocomplete="username" />
 
-        <label for="authPassword">Senha</label>
-        <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <label for="authPassword">Senha</label>
+            <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
 
-        <button id="authSubmit" class="btn-auth"><i class='bx bx-log-in'></i> Entrar</button>
-        <div id="authError" class="auth-error"></div>
+            <button id="authSubmit" class="btn-auth"><i class='bx bx-log-in'></i> Entrar</button>
+            <div id="authError" class="auth-error"></div>
+        </div>
     </div>
-</div>
-
-
 
     <main id="agenda">
         <div class="toolbar">
@@ -76,9 +73,10 @@
         <div class="card">
             <div class="card-header">
                 <h2>Resultados do dia</h2>
-              
             </div>
+
             <div class="meta" id="metaInfo"></div>
+
             <div class="card-body">
                 <table>
                     <thead>
@@ -94,11 +92,25 @@
                     <tbody id="tbody"></tbody>
                 </table>
             </div>
-            <a class="link-index" href="https://ra-barbearia.vercel.app/"><i class='bx bx-calendar'></i> Ir para Agendamentos</a>
-        <button id="logoutBtn" class="btn btn-logout hidden"><i class='bx bx-log-out'></i> Sair</button>
+
+            <!-- >>> NOVO FOOTER DO CARD: BOTÕES ALINHADOS/RESPONSIVOS <<< -->
+            <div class="card-footer">
+                <div class="left-actions">
+                    <a class="btn link-index" href="https://ra-barbearia.vercel.app/" target="_blank" rel="noopener">
+                        <i class='bx bx-calendar'></i> Ir para Agendamentos
+                    </a>
+                </div>
+                <div class="right-actions">
+                    <button id="logoutBtn" class="btn btn-logout hidden">
+                        <i class='bx bx-log-out'></i> Sair
+                    </button>
+                </div>
+            </div>
+            <!-- >>> FIM FOOTER <<< -->
         </div>
     </main>
 
+    <!-- Modal -->
     <div class="modal-2" id="editModal">
         <div class="box">
             <header>
@@ -142,3 +154,4 @@
 </body>
 
 </html>
+
