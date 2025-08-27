@@ -1,4 +1,4 @@
-// ===== MENU MOBILE (mesmo header da home) =====
+// ===== MENU MOBILE =====
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
 menuToggle?.addEventListener('click', () => {
@@ -16,6 +16,9 @@ import {
     doc, getDoc, setDoc, updateDoc, deleteDoc,
     runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Config do seu projeto
 const firebaseConfig = {
@@ -29,22 +32,20 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-// Fallback automático para redes que bloqueiam streaming (evita Listen 400)
-const db = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-    // Se ainda precisar, troque por:
-    // experimentalForceLongPolling: true,
-    // useFetchStreams: false
-});
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+const auth = getAuth(app);
 
-// ===== MAPEAMENTO DOS PROFISSIONAIS (mesmos data-col do index.html!) =====
+// ===== ADMIN AUTORIZADO (reforço de UX; segurança real está nas REGRAS) =====
+const ADMINS = ["admin@seuemail.com"]; // TODO: troque para o seu e-mail
+
+// ===== MAPEAMENTO DOS PROFISSIONAIS (mesmos data-col do site público) =====
 const PROFISSIONAIS = [
     { label: 'Rodrigo', colecao: 'reservas_rodrigo', wa: '5581996221060' },
     { label: 'Lucas Wilhy', colecao: 'reservas_lucas', wa: '5581996221060' },
     { label: 'Melquer', colecao: 'reservas_melquer', wa: '5581996221060' },
 ];
 
-// ===== HELPERS / ESTADO =====
+// ===== DOM =====
 const $ = (s) => document.querySelector(s);
 const tbody = $('#tbody');
 const metaInfo = $('#metaInfo');
@@ -53,6 +54,15 @@ const dataFiltro = $('#dataFiltro');
 const horaFiltro = $('#horaFiltro');
 const buscarBtn = $('#buscarBtn');
 
+// Login
+const authGate = $('#authGate');
+const authEmail = $('#authEmail');
+const authPassword = $('#authPassword');
+const authSubmit = $('#authSubmit');
+const authError = $('#authError');
+const logoutBtn = $('#logoutBtn');
+
+// Modal editar
 const editModal = $('#editModal');
 const closeEdit = $('#closeEdit');
 const salvarBtnModal = $('#salvarBtnModal');
@@ -61,12 +71,12 @@ const editCliente = $('#editCliente');
 const editData = $('#editData');
 const editHora = $('#editHora');
 
+// ===== ESTADO/HELPERS =====
 let currentRow = null; // { colecao, slotId, data, hora, profissional, clienteNome }
 const toKey = (ymd, hhmm) => `${ymd}_${hhmm}`;
 const normalizeHora = (h) => h?.padStart(5, '0');
 const fmtBR = (ymd) => new Date(`${ymd}T00:00:00`).toLocaleDateString('pt-BR');
 
-// ===== UI =====
 function fillProfissionais() {
     profissionalSelect.innerHTML = PROFISSIONAIS
         .map(p => `<option value="${p.colecao}">${p.label}</option>`)
@@ -80,7 +90,7 @@ function setHoje() {
     dataFiltro.value = `${y}-${m}-${d}`;
 }
 
-// ===== BUSCA =====
+// ===== BUSCA / LISTAGEM =====
 async function buscar() {
     tbody.innerHTML = `<tr><td colspan="6">Carregando...</td></tr>`;
     const colecao = profissionalSelect.value;
@@ -145,6 +155,7 @@ function renderRows(rows, meta) {
       </tr>
     `).join('');
 
+    // Liga ações (as regras do Firestore barram se não for admin)
     tbody.querySelectorAll('button[data-action="edit"]').forEach(b =>
         b.addEventListener('click', () => openEdit(b.dataset.col, b.dataset.id)));
     tbody.querySelectorAll('button[data-action="del"]').forEach(b =>
@@ -170,7 +181,7 @@ async function openEdit(colecao, slotId) {
         editModal.classList.add('open');
     } catch (e) {
         console.error('openEdit error:', e);
-        alert('Erro ao abrir edição.');
+        alert('Erro ao abrir edição. Verifique se você está logado.');
     }
 }
 function closeModal() { editModal.classList.remove('open'); currentRow = null; }
@@ -184,7 +195,7 @@ async function removeSlot(colecao, slotId) {
         await buscar();
     } catch (e) {
         console.error('delete error:', e);
-        alert('Não foi possível desmarcar. Verifique as regras do Firestore.');
+        alert('Não foi possível desmarcar. Verifique se você está logado e as regras do Firestore.');
     }
 }
 cancelarBtnModal?.addEventListener('click', async () => {
@@ -199,19 +210,19 @@ salvarBtnModal?.addEventListener('click', async () => {
     const novaData = editData.value;
     const novaHora = normalizeHora(editHora.value);
 
-    // Apenas atualizar nome
+    // Só alterar nome
     if (novaData === currentRow.data && novaHora === currentRow.hora) {
         try {
             await updateDoc(doc(db, currentRow.colecao, currentRow.slotId), { clienteNome: novoNome || null });
             closeModal(); await buscar();
         } catch (e) {
             console.error('updateDoc error:', e);
-            alert('Não foi possível salvar.');
+            alert('Não foi possível salvar. Verifique se você está logado.');
         }
         return;
     }
 
-    // Mover para outro horário (usa transação para evitar conflitos)
+    // Mover horário (transação evita conflito)
     try {
         const oldRef = doc(db, currentRow.colecao, currentRow.slotId);
         const newId = toKey(novaData, novaHora);
@@ -222,11 +233,8 @@ salvarBtnModal?.addEventListener('click', async () => {
             const newSnap = await tx.get(newRef);
             if (newSnap.exists()) throw new Error('Horário já reservado.');
             const payload = {
-                data: novaData,
-                hora: novaHora,
-                profissional: currentRow.profissional,
-                clienteNome: novoNome || null,
-                createdAt: serverTimestamp()
+                data: novaData, hora: novaHora, profissional: currentRow.profissional,
+                clienteNome: novoNome || null, createdAt: serverTimestamp()
             };
             tx.set(newRef, payload);
             tx.delete(oldRef);
@@ -234,7 +242,48 @@ salvarBtnModal?.addEventListener('click', async () => {
         closeModal(); await buscar();
     } catch (e) {
         console.error('transaction error:', e);
-        alert(e?.message || 'Falha ao mover o agendamento.');
+        alert(e?.message || 'Falha ao mover o agendamento. Verifique se você está logado.');
+    }
+});
+
+// ===== AUTH (login/logout) =====
+function toggleGate(show) {
+    if (show) authGate?.classList.remove('hidden');
+    else authGate?.classList.add('hidden');
+}
+authSubmit?.addEventListener('click', async () => {
+    authError.textContent = '';
+    const email = (authEmail.value || '').trim();
+    const pass = authPassword.value || '';
+    if (!email || !pass) { authError.textContent = 'Informe e-mail e senha.'; return; }
+    authSubmit.disabled = true; authSubmit.textContent = 'Entrando...';
+    try {
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        if (ADMINS.length && !ADMINS.includes(cred.user.email)) {
+            // não está na lista de admins desta UI (regras do Firestore continuarão protegendo)
+            await signOut(auth);
+            throw new Error('Este usuário não tem acesso ao painel.');
+        }
+    } catch (e) {
+        authError.textContent = (e?.code === 'auth/invalid-credential')
+            ? 'Credenciais inválidas.'
+            : (e?.message || 'Falha ao entrar.');
+    } finally {
+        authSubmit.disabled = false; authSubmit.textContent = 'Entrar';
+    }
+});
+
+logoutBtn?.addEventListener('click', () => signOut(auth).catch(console.error));
+
+onAuthStateChanged(auth, (user) => {
+    const ok = !!user && (ADMINS.length ? ADMINS.includes(user.email) : true);
+    toggleGate(!ok);
+    if (ok) {
+        logoutBtn?.classList.remove('hidden');
+        // recarrega lista (caso tenha aberto antes de logar)
+        buscar();
+    } else {
+        logoutBtn?.classList.add('hidden');
     }
 });
 
@@ -243,7 +292,6 @@ salvarBtnModal?.addEventListener('click', async () => {
     fillProfissionais();
     setHoje();
     buscarBtn.addEventListener('click', buscar);
-    buscar(); // primeira carga
+    buscar(); // primeira carga (leitura é pública)
 })();
-
 

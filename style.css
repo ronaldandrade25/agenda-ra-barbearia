@@ -88,6 +88,49 @@ nav {
     cursor: pointer;
 }
 
+
+/* ====== LOGIN (AUTH GATE) ====== */
+.auth-gate{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1200; /* acima do modal */
+  padding: 20px;
+}
+.auth-card{
+  width: 100%; max-width: 380px;
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0,0,0,.2);
+  padding: 22px;
+  display: grid; gap: 10px;
+}
+.auth-card h2{ margin: 0; color: var(--secondary-color); font-size: 1.25rem; }
+.auth-sub{ color: #666; font-size: .92rem; margin-bottom: 6px; }
+.auth-card label{ font-weight: 600; font-size: .92rem; color: #333; }
+.auth-card input{
+  border: 1px solid #e6e6e6; border-radius: 10px; padding: 10px;
+  font-size: .95rem;
+}
+.btn-auth{
+  margin-top: 8px;
+  background: var(--primary-color); color: #fff;
+  border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer;
+}
+.btn-auth:disabled{ opacity: .7; cursor: not-allowed; }
+.auth-error{ color: #d0342c; font-size: .9rem; min-height: 1.1em; }
+
+.hidden{ display: none !important; }
+
+/* botão sair */
+.btn-logout{
+  background: #0f172a; color: #fff;
+  padding: 8px 12px; border-radius: 8px; border: 0; font-weight: 600; cursor: pointer;
+}
+.btn-logout:hover{ opacity:.9; }
+
+
+
+
 /* ===== TOOLBAR ===== */
 .toolbar {
   display: grid;
