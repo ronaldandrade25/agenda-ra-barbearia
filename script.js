@@ -35,8 +35,10 @@ const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 const auth = getAuth(app);
 
+
+
 // ===== ADMIN AUTORIZADO (reforço de UX; segurança real está nas REGRAS) =====
-const ADMINS = ["admin@seuemail.com"]; // TODO: troque para o seu e-mail
+const ADMINS = ["rabarbearia966@gmail.com"]; // TODO: troque para o seu e-mail
 
 // ===== MAPEAMENTO DOS PROFISSIONAIS (mesmos data-col do site público) =====
 const PROFISSIONAIS = [
