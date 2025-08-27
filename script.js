@@ -1,4 +1,4 @@
-// Header: menu mobile
+// ===== MENU MOBILE (mesmo header da home) =====
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
 menuToggle?.addEventListener('click', () => {
@@ -8,33 +8,43 @@ menuToggle?.addEventListener('click', () => {
     else { icon.classList.remove('bx-x'); icon.classList.add('bx-menu'); }
 });
 
-// Firebase
+// ===== FIREBASE (CDN modular) =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getFirestore, collection, query, where, getDocs, doc, getDoc,
-    updateDoc, deleteDoc, runTransaction, serverTimestamp
+    initializeFirestore,
+    collection, query, where, getDocs,
+    doc, getDoc, setDoc, updateDoc, deleteDoc,
+    runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Config do seu projeto
 const firebaseConfig = {
-    apiKey: "AIzaSyC8vB6emYJp9OVumvz7YrfMU0xLg1Pv-Go",
-    authDomain: "studio-donna-f7579.firebaseapp.com",
-    projectId: "studio-donna-f7579",
-    storageBucket: "studio-donna-f7579.firebasestorage.app",
-    messagingSenderId: "542780214223",
-    appId: "1:542780214223:web:e330e29fcbb2b670f8e0ba",
-    measurementId: "G-TBZPL44ZGR"
+    apiKey: "AIzaSyD8q8N8l6lG-4YGNDZ6Lfs63yW6IS2lqFc",
+    authDomain: "ra-barbearia-a8e60.firebaseapp.com",
+    projectId: "ra-barbearia-a8e60",
+    storageBucket: "ra-barbearia-a8e60.firebasestorage.app",
+    messagingSenderId: "6836920871",
+    appId: "1:6836920871:web:2b52193c00af7136436402",
+    measurementId: "G-RBBGBQ82W4"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-// Mapeie conforme o data-col do index.html
+const app = initializeApp(firebaseConfig);
+// Fallback automático para redes que bloqueiam streaming (evita Listen 400)
+const db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    // Se ainda precisar, troque por:
+    // experimentalForceLongPolling: true,
+    // useFetchStreams: false
+});
+
+// ===== MAPEAMENTO DOS PROFISSIONAIS (mesmos data-col do index.html!) =====
 const PROFISSIONAIS = [
-    { label: 'Rodrigo', colecao: 'reservas_maria', wa: '5581996221060' },
-    { label: 'Lucas Wilhy', colecao: 'reservas_leid', wa: '5581996221060' },
-    { label: 'Melquer', colecao: 'reservas_tatiana', wa: '5581996221060' },
+    { label: 'Rodrigo', colecao: 'reservas_rodrigo', wa: '5581996221060' },
+    { label: 'Lucas Wilhy', colecao: 'reservas_lucas', wa: '5581996221060' },
+    { label: 'Melquer', colecao: 'reservas_melquer', wa: '5581996221060' },
 ];
 
-// Helpers / Estado
+// ===== HELPERS / ESTADO =====
 const $ = (s) => document.querySelector(s);
 const tbody = $('#tbody');
 const metaInfo = $('#metaInfo');
@@ -53,9 +63,10 @@ const editHora = $('#editHora');
 
 let currentRow = null; // { colecao, slotId, data, hora, profissional, clienteNome }
 const toKey = (ymd, hhmm) => `${ymd}_${hhmm}`;
-const normalizeHora = (h) => h.padStart(5, '0');
+const normalizeHora = (h) => h?.padStart(5, '0');
 const fmtBR = (ymd) => new Date(`${ymd}T00:00:00`).toLocaleDateString('pt-BR');
 
+// ===== UI =====
 function fillProfissionais() {
     profissionalSelect.innerHTML = PROFISSIONAIS
         .map(p => `<option value="${p.colecao}">${p.label}</option>`)
@@ -69,6 +80,7 @@ function setHoje() {
     dataFiltro.value = `${y}-${m}-${d}`;
 }
 
+// ===== BUSCA =====
 async function buscar() {
     tbody.innerHTML = `<tr><td colspan="6">Carregando...</td></tr>`;
     const colecao = profissionalSelect.value;
@@ -83,6 +95,7 @@ async function buscar() {
         const q = hhmmFiltro
             ? query(collection(db, colecao), where('data', '==', ymd), where('hora', '==', hhmmFiltro))
             : query(collection(db, colecao), where('data', '==', ymd));
+
         const snap = await getDocs(q);
         const rows = [];
         snap.forEach(d => {
@@ -114,21 +127,23 @@ function renderRows(rows, meta) {
         tbody.innerHTML = `<tr><td colspan="6">Nenhum agendamento para este filtro.</td></tr>`;
         return;
     }
-    tbody.innerHTML = rows.sort((a, b) => a.hora.localeCompare(b.hora)).map(r => `
-    <tr>
-      <td>${r.clienteNome || '—'}</td>
-      <td>${r.profissional}</td>
-      <td>${fmtBR(r.data)}</td>
-      <td>${r.hora}</td>
-      <td style="font-family: ui-monospace, Menlo, Consolas, monospace; color:#666;">${r.slotId}</td>
-      <td>
-        <div class="actions">
-          <button class="btn btn-edit" data-action="edit" data-id="${r.slotId}" data-col="${r.colecao}">Editar</button>
-          <button class="btn btn-del"  data-action="del"  data-id="${r.slotId}" data-col="${r.colecao}">Desmarcar</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+    tbody.innerHTML = rows
+        .sort((a, b) => a.hora.localeCompare(b.hora))
+        .map(r => `
+      <tr>
+        <td>${r.clienteNome || '—'}</td>
+        <td>${r.profissional}</td>
+        <td>${fmtBR(r.data)}</td>
+        <td>${r.hora}</td>
+        <td style="font-family: ui-monospace, Menlo, Consolas, monospace; color:#666;">${r.slotId}</td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-edit" data-action="edit" data-id="${r.slotId}" data-col="${r.colecao}">Editar</button>
+            <button class="btn btn-del"  data-action="del"  data-id="${r.slotId}" data-col="${r.colecao}">Desmarcar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
 
     tbody.querySelectorAll('button[data-action="edit"]').forEach(b =>
         b.addEventListener('click', () => openEdit(b.dataset.col, b.dataset.id)));
@@ -136,13 +151,19 @@ function renderRows(rows, meta) {
         b.addEventListener('click', () => removeSlot(b.dataset.col, b.dataset.id)));
 }
 
+// ===== EDITAR / DESMARCAR =====
 async function openEdit(colecao, slotId) {
     try {
         const ref = doc(db, colecao, slotId);
         const snap = await getDoc(ref);
         if (!snap.exists()) return alert('Documento não encontrado.');
         const v = snap.data();
-        currentRow = { colecao, slotId, data: v.data, hora: v.hora, profissional: v.profissional, clienteNome: v.clienteNome || '' };
+        currentRow = {
+            colecao, slotId,
+            data: v.data, hora: v.hora,
+            profissional: v.profissional,
+            clienteNome: v.clienteNome || ''
+        };
         editCliente.value = currentRow.clienteNome || '';
         editData.value = currentRow.data;
         editHora.value = currentRow.hora;
@@ -158,8 +179,13 @@ closeEdit?.addEventListener('click', closeModal);
 async function removeSlot(colecao, slotId) {
     const ok = confirm('Tem certeza que deseja desmarcar este horário?');
     if (!ok) return;
-    try { await deleteDoc(doc(db, colecao, slotId)); await buscar(); }
-    catch (e) { console.error('delete error:', e); alert('Não foi possível desmarcar. Verifique as regras do Firestore.'); }
+    try {
+        await deleteDoc(doc(db, colecao, slotId));
+        await buscar();
+    } catch (e) {
+        console.error('delete error:', e);
+        alert('Não foi possível desmarcar. Verifique as regras do Firestore.');
+    }
 }
 cancelarBtnModal?.addEventListener('click', async () => {
     if (!currentRow) return;
@@ -173,14 +199,19 @@ salvarBtnModal?.addEventListener('click', async () => {
     const novaData = editData.value;
     const novaHora = normalizeHora(editHora.value);
 
+    // Apenas atualizar nome
     if (novaData === currentRow.data && novaHora === currentRow.hora) {
         try {
             await updateDoc(doc(db, currentRow.colecao, currentRow.slotId), { clienteNome: novoNome || null });
             closeModal(); await buscar();
-        } catch (e) { console.error('updateDoc error:', e); alert('Não foi possível salvar.'); }
+        } catch (e) {
+            console.error('updateDoc error:', e);
+            alert('Não foi possível salvar.');
+        }
         return;
     }
 
+    // Mover para outro horário (usa transação para evitar conflitos)
     try {
         const oldRef = doc(db, currentRow.colecao, currentRow.slotId);
         const newId = toKey(novaData, novaHora);
@@ -191,8 +222,11 @@ salvarBtnModal?.addEventListener('click', async () => {
             const newSnap = await tx.get(newRef);
             if (newSnap.exists()) throw new Error('Horário já reservado.');
             const payload = {
-                data: novaData, hora: novaHora, profissional: currentRow.profissional,
-                clienteNome: novoNome || null, createdAt: serverTimestamp()
+                data: novaData,
+                hora: novaHora,
+                profissional: currentRow.profissional,
+                clienteNome: novoNome || null,
+                createdAt: serverTimestamp()
             };
             tx.set(newRef, payload);
             tx.delete(oldRef);
@@ -204,10 +238,12 @@ salvarBtnModal?.addEventListener('click', async () => {
     }
 });
 
-// Inicialização
+// ===== INICIALIZAÇÃO =====
 (function init() {
     fillProfissionais();
     setHoje();
     buscarBtn.addEventListener('click', buscar);
     buscar(); // primeira carga
 })();
+
+
